@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.pr.dao.OrderCostDao">
+    
+	<sql id="orderCostColumns">
+		a.id AS "id",
+		a.order_id AS "order.id",
+		a.subject AS "subject",
+		a.money AS "money",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="orderCostJoins">
+        
+	</sql>
+	
+    
+	<select id="get" resultType="OrderCost" >
+		SELECT 
+			<include refid="orderCostColumns"/>
+		FROM pr_order_cost a
+		<include refid="orderCostJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="OrderCost" >
+		SELECT 
+			<include refid="orderCostColumns"/>
+		FROM pr_order_cost a
+		<include refid="orderCostJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="order!=null and order.id != null and order.id != ''">
+			     AND a.order_id=#{order.id}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="OrderCost" >
+		SELECT 
+			<include refid="orderCostColumns"/>
+		FROM pr_order_cost a
+		<include refid="orderCostJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO pr_order_cost(
+			id,
+			order_id,
+			subject,
+			money,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{orderId},
+			#{subject},
+			#{money},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE pr_order_cost SET 	
+			order_id = #{orderId},
+			subject = #{subject},
+			money = #{money},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM pr_order_cost
+		<where>
+              1 = 1
+            <if test="id != null and id != ''">
+                AND id = #{id}
+            </if>
+            <if test="order!=null and order.id != null and order.id != ''">
+                AND order_id = #{order.id}
+            </if>
+        </where>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE pr_order_cost SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="OrderCost" statementType="STATEMENT">
+		select * FROM pr_order_cost  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

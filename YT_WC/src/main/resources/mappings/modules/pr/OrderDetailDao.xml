@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.pr.dao.OrderDetailDao">
+    
+    <resultMap id="orderDetailResult" type="OrderDetail">
+        <id property="id" column="id" />
+        <result property="order.id" column="order.id" />
+        <result property="size" column="size" />
+        <result property="price" column="price" />
+        <result property="productDesc" column="productDesc" />
+        <result property="isStorage" column="isStorage" />
+        <result property="createDate" column="createDate" />
+        <result property="remarks" column="remarks" />
+        <association property="product" javaType="com.jeeplus.modules.bb.entity.Product">
+            <id column="product.id" property="id"/>
+            <result column="product.name" property="name"/>
+            <result column="product.style" property="style"/>
+            <result column="product.relationName" property="relationName"/>
+        </association>
+    </resultMap>
+    
+	<sql id="orderDetailColumns">
+		a.id AS "id",
+		a.order_id AS "order.id",
+		a.size AS "size",
+		a.price AS "price",
+		a.product_desc AS "productDesc",
+		a.is_storage AS "isStorage",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		p.id AS "product.id",
+        p.name AS "product.name",
+        p.style AS "product.style",
+        p.relation_name AS "product.relationName"		
+	</sql>
+	
+	<sql id="orderDetailJoins">
+	   LEFT JOIN bb_product p on p.id=a.product_id
+	</sql>
+	
+    
+	<select id="get" resultType="OrderDetail" >
+		SELECT 
+			<include refid="orderDetailColumns"/>
+		FROM pr_order_detail a
+		<include refid="orderDetailJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<!-- 通过订单查找订单明细 -->
+	<select id="findByOrder" resultMap="orderDetailResult" >
+        SELECT 
+            <include refid="orderDetailColumns"/>
+        FROM pr_order_detail a
+        <include refid="orderDetailJoins"/>
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            <if test="order!=null and order.id != null and order.id != ''">
+                AND a.order_id = #{order.id}
+            </if>
+            <if test="product!=null and product.id != null and product.id != ''">
+                AND a.product_id = #{product.id}
+            </if>
+        </where>
+        ORDER BY a.create_date asc
+    </select>
+	
+	
+	<select id="findList" resultType="OrderDetail" >
+		SELECT 
+			<include refid="orderDetailColumns"/>
+		FROM pr_order_detail a
+		<include refid="orderDetailJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="orderId != null and orderId != ''">
+				AND a.order_id = #{orderId}
+			</if>
+			<if test="productId != null and productId != ''">
+				AND a.product_id = #{productId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="OrderDetail" >
+		SELECT 
+			<include refid="orderDetailColumns"/>
+		FROM pr_order_detail a
+		<include refid="orderDetailJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO pr_order_detail(
+			id,
+			order_id,
+			product_id,
+			size,
+			price,
+			product_desc,
+			is_storage,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{orderId},
+			#{productId},
+			#{size},
+			#{price},
+			#{productDesc},
+			#{isStorage},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE pr_order_detail SET 	
+			order_id = #{orderId},
+			product_id = #{productId},
+			size = #{size},
+			price = #{price},
+			product_desc = #{productDesc},
+			is_storage = #{isStorage},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM pr_order_detail
+		<where>
+		      1 = 1
+            <if test="id != null and id != ''">
+                AND id = #{id}
+            </if>
+            <if test="order!=null and order.id != null and order.id != ''">
+                AND order_id = #{order.id}
+            </if>
+        </where>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE pr_order_detail SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="OrderDetail" statementType="STATEMENT">
+		select * FROM pr_order_detail  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

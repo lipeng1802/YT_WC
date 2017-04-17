@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.pr.dao.OrderDao">
+    <resultMap id="orderResult" type="Order">
+        <id property="id" column="id" />
+        <result property="sn" column="sn" />
+        <!-- <result property="customer.id" column="customerId" /> -->
+        <result property="orderDate" column="orderDate" />
+        <result property="state" column="state" />
+        <result property="postMethod" column="postMethod" />
+        <result property="payMethod" column="payMethod" />
+        <result property="invoice" column="invoice" />
+        <result property="total" column="total" />
+        <result property="createDate" column="createDate" />
+        <result property="remarks" column="remarks" />
+        <association property="customer" javaType="com.jeeplus.modules.bb.entity.Customer">
+            <id column="customer.id" property="id"/>
+            <result column="customer.name" property="name"/>
+            <result column="customer.contactPerson" property="contactPerson"/>
+            <result column="customer.phone" property="phone"/>
+            <result column="customer.address" property="address"/>
+        </association>
+        <association property="wechat" javaType="com.jeeplus.modules.bb.entity.Wechat">
+            <id column="wechat.id" property="id"/>
+            <result column="wechat.wechatId" property="wechatId"/>
+            <result column="wechat.wechatName" property="wechatName"/>
+        </association>
+    </resultMap>
+    
+	<sql id="orderColumns">
+		a.id AS "id",
+		a.sn AS "sn",
+		a.order_date AS "orderDate",
+		a.state AS "state",
+		a.post_method AS "postMethod",
+		a.pay_method AS "payMethod",
+		a.invoice AS "invoice",
+		a.total AS "total",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		<!-- c.id AS "customer.id", -->
+		a.customer_id AS "customer.id",
+		c.name AS "customer.name",
+		c.contact_person AS "customer.contactPerson",
+		c.phone AS "customer.phone",
+		c.address AS "customer.address",
+		a.wechat_id AS "wechat.id",
+		w.wechat_id AS "wechat.wechatId",
+        w.wechat_name AS "wechat.wechatName"
+	</sql>
+	
+	<sql id="orderJoins">
+	   LEFT JOIN bb_customer c on a.customer_id=c.id
+	   LEFT JOIN bb_wechat w on w.id = a.wechat_id
+	</sql>
+	
+    
+	<select id="get" resultType="Order" >
+		SELECT 
+			<include refid="orderColumns"/>
+		FROM pr_order a
+		<include refid="orderJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultMap="orderResult" >
+		SELECT 
+			<include refid="orderColumns"/>
+		FROM pr_order a
+		<include refid="orderJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="customer!=null and customer.id != null and customer.id != ''">
+				AND a.customer_id = #{customer.id}
+			</if>
+			<if test="orderInfo != null and orderInfo != ''">
+                AND (c.name LIKE concat('%',#{orderInfo},'%') or w.wechat_name LIKE concat('%',#{orderInfo},'%')
+                     or c.contact_person LIKE  concat('%',#{orderInfo},'%') or c.contact_person LIKE  concat('%',#{orderInfo},'%'))
+            </if>
+			<if test="sn != null and sn != ''">
+				AND a.sn = #{sn}
+			</if>
+			<if test="beginDate != null and beginDate != ''">
+				AND a.order_date &gt;= #{beginDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+                <!-- AND a.order_date  &lt;= DATE_ADD(date_format(#{endDate},'%Y-%m-%d %H:%k:%s'),INTERVAL '23:59:59:00' HOUR_MICROSECOND); --> 
+                AND a.order_date  &lt;= DATE_ADD(date_format(#{endDate},'%Y-%m-%d %H:%k:%s'),INTERVAL '23:59:59:00' HOUR_MICROSECOND)
+                
+            </if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.order_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Order" >
+		SELECT 
+			<include refid="orderColumns"/>
+		FROM pr_order a
+		<include refid="orderJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO pr_order(
+			id,
+			wechat_id,
+			customer_id,
+			sn,
+			order_date,
+			state,
+			post_method,
+			pay_method,
+			invoice,
+			total,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{wechat.id},
+			#{customer.id},
+			#{sn},
+			#{orderDate},
+			#{state},
+			#{postMethod},
+			#{payMethod},
+			#{invoice},
+			#{total},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE pr_order SET 	
+			wechat_id = #{wechat.id},
+			customer_id = #{customer.id},
+			sn = #{sn},
+			order_date = #{orderDate},
+			state = #{state},
+			post_method = #{postMethod},
+			pay_method = #{payMethod},
+			invoice = #{invoice},
+			total = #{total},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM pr_order
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE pr_order SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Order" statementType="STATEMENT">
+		select * FROM pr_order  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

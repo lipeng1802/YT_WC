@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.bb.dao.AttributeDao">
+    
+	<sql id="attributeColumns">
+		a.id AS "id",
+		a.name AS "name",
+		a.name_desc AS "nameDesc",
+		a.sort AS "sort",
+		a.type AS "type",
+		a.price AS "price",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="attributeJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="Attribute" >
+		SELECT 
+			<include refid="attributeColumns"/>
+		FROM bb_attribute a
+		<include refid="attributeJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<!-- 根据属性名查询用户 -->
+    <select id="getAttributeByName" resultType="Attribute" parameterType="Attribute">
+        SELECT
+            <include refid="attributeColumns"/>
+        FROM bb_attribute a
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            <if test="name != null and name != ''">
+                AND a.name = #{name}
+            </if>
+            <if test="type != null and type != ''">
+                AND a.type = #{type}
+            </if>
+        </where>
+        ORDER BY a.id
+    </select>
+	
+	<select id="findListByTypes" resultType="Attribute" >
+        SELECT 
+            <include refid="attributeColumns"/>
+        FROM bb_attribute a
+        <include refid="attributeJoins"/>
+        <where>
+            a.del_flag = 0
+            <if test="types != null and types.size > 0">
+                and a.type  in
+		        <foreach collection="types" item="type" open="(" separator="," close=")">
+		            #{type}
+		        </foreach>
+            </if>
+            <if test="notTypes != null and notTypes.size() > 0">
+                and a.type not in
+                <foreach collection="notTypes" item="type" open="(" separator="," close=")">
+                    #{type}
+                </foreach>
+            </if>
+            
+        </where>
+    </select>
+	
+	<!-- 根据产品ID获得所有属性 -->
+	<select id="findProductAttributeList" resultType="Attribute" >
+        SELECT 
+            <include refid="attributeColumns"/>
+        FROM bb_ref_product_attrubite pa
+        LEFT JOIN bb_attribute a on a.id=pa.attribute_id
+        LEFT JOIN sys_dict d on d.value=a.type
+        <where>
+            a.del_flag = 0
+            and pa.product_id=#{productId}
+            order by d.sort
+        </where>
+    </select>
+	
+	<select id="findList" resultType="Attribute" >
+		SELECT 
+			<include refid="attributeColumns"/>
+		FROM bb_attribute a
+		<include refid="attributeJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="type != null and type != ''">
+				AND a.type = #{type}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Attribute" >
+		SELECT 
+			<include refid="attributeColumns"/>
+		FROM bb_attribute a
+		<include refid="attributeJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO bb_attribute(
+			id,
+			name,
+			name_desc,
+			sort,
+			type,
+			price,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{name},
+			#{nameDesc},
+			#{sort},
+			#{type},
+			#{price},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE bb_attribute SET 	
+			name = #{name},
+			name_desc = #{nameDesc},
+			sort = #{sort},
+			type = #{type},
+			price = #{price},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM bb_attribute
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE bb_attribute SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Attribute" statementType="STATEMENT">
+		select * FROM bb_attribute  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

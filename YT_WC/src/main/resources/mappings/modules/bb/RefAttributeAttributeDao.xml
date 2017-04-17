@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.bb.dao.RefAttributeAttributeDao">
+    
+	<sql id="refAttributeAttributeColumns">
+		a.id AS "id",
+		a.attribute_id1 AS "attributeId1",
+		a.attribute_id2 AS "attributeId2",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="refAttributeAttributeJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="RefAttributeAttribute" >
+		SELECT 
+			<include refid="refAttributeAttributeColumns"/>
+		FROM bb_ref_attribute_attribute a
+		<include refid="refAttributeAttributeJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	
+	<select id="findListByAttribute" resultType="Attribute" >
+		select b.id,b.type,b.name from bb_ref_attribute_attribute a
+		  left join bb_attribute b on a.attribute_id2=b.id
+		<where>
+		  a.del_flag = 0
+		  <if test="id != null and id != ''">
+                AND a.attribute_id1 = #{id}
+            </if>
+		</where>
+       
+    </select>
+	
+	
+	<select id="findList" resultType="RefAttributeAttribute" >
+		SELECT 
+			<include refid="refAttributeAttributeColumns"/>
+		FROM bb_ref_attribute_attribute a
+		<include refid="refAttributeAttributeJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="attributeId1 != null and attributeId1 != ''">
+				AND a.attribute_id1 = #{attributeId1}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="RefAttributeAttribute" >
+		SELECT 
+			<include refid="refAttributeAttributeColumns"/>
+		FROM bb_ref_attribute_attribute a
+		<include refid="refAttributeAttributeJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO bb_ref_attribute_attribute(
+			id,
+			attribute_id1,
+			attribute_id2,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{attributeId1.id},
+			#{attributeId2.id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE bb_ref_attribute_attribute SET 	
+			attribute_id1 = #{attributeId1.id},
+			attribute_id2 = #{attributeId2.id},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 根据属性删除属性配置 -->
+	<update id="deleteRefByAttr">
+        DELETE FROM bb_ref_attribute_attribute
+        WHERE attribute_id1 = #{id}
+    </update>
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM bb_ref_attribute_attribute
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE bb_ref_attribute_attribute SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="RefAttributeAttribute" statementType="STATEMENT">
+		select * FROM bb_ref_attribute_attribute  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

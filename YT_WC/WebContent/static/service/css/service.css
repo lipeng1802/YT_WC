@@ -1,0 +1,106 @@
+@CHARSET "UTF-8";
+
+/**width-config**/
+.input_w100P{
+    width:100% !important;
+}
+.input_w70P{
+    width:70% !important;
+}
+.width60P{
+    width:60%;
+}
+
+.width50P{
+	width:50%;
+}
+.width40P{
+    width:40%;
+}
+.width30P{
+    width:30%;
+}
+.width8P{
+    width:8%;
+}
+.width15P{
+    width:15%;
+}
+.width20P{
+    width:20%;
+}
+.width25P{
+    width:25%;
+}
+.width20F{
+    width:20px;
+}
+.width50F{
+    width:50px;
+}
+
+
+/****/
+.fontNormal{
+	font-weight: normal;
+}
+.cursor-p{
+	cursor:pointer;
+}
+
+/**table***/
+.disTable{
+	display:table;
+	width:100%;
+}
+.tableCell{
+	display:table-cell;
+}
+.tableCell table{
+    width:100%;
+}
+
+.dis-none{
+	display:none;
+}
+.cursor-p{
+	cursor:pointer;
+}
+
+.clearfix {
+    zoom: 1;
+}
+.fl {
+    float: left;
+    display: inline;
+}
+.fast_button_i {
+    display: block;
+    line-height: 65px;
+    margin-bottom: 15px;
+}
+.fast_button_span {
+    bottom: 10%;
+    font-size: 13px;
+    left: 0px;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+.circle {
+    border-radius: 50% !important;
+}
+.clearMP{
+	margin:0px ;
+	padding:0px ;
+}
+
+.totalMoney{
+	font-size:18px;
+	font-style: italic;
+	font-weight:600;
+	text-decoration: underline;
+	color:#333;
+}
+
+

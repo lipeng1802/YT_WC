@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.bb.dao.ProductDao">
+    
+    <resultMap id="productResult" type="Product">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="style" column="style" />
+        <result property="relationName" column="relationName" />
+        <result property="reserve01" column="reserve01" />
+        <result property="reserve02" column="reserve02" />
+        <result property="remarks" column="remarks" />
+        <collection property="attributeList" ofType="Attribute" >
+           <id property="id" column="attributeList.id" />
+           <result property="name" column="attributeList.name" />
+           <result property="type" column="attributeList.type" />
+        </collection>
+    </resultMap>
+    
+    <sql id="productColumns">
+        a.id AS "id",
+        a.name AS "name",
+        a.style AS "style",
+        a.reserve01 AS "reserve01",
+        a.reserve02 AS "reserve02",
+        a.relation_name AS "relationName",
+        a.create_by AS "createBy.id",
+        a.create_date AS "createDate",
+        a.update_by AS "updateBy.id",
+        a.update_date AS "updateDate",
+        a.remarks AS "remarks",
+        a.del_flag AS "delFlag"
+    </sql>
+    
+	<sql id="productAttributeColumns">
+		a.id AS "id",
+		a.name AS "name",
+		a.style AS "style",
+		a.reserve01 AS "reserve01",
+		a.reserve02 AS "reserve02",
+		a.relation_name AS "relationName",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+        at.id AS "attributeList.id",
+        at.name AS "attributeList.name",
+        at.type AS "attributeList.type"
+	</sql>
+	
+	<sql id="productAttributeJoins">
+	   LEFT JOIN bb_ref_product_attrubite pa ON pa.product_id = a.id
+       LEFT JOIN bb_attribute at ON pa.attribute_id = at.id
+	</sql>
+	
+	<sql id="productJoins">
+    </sql>
+    
+	<select id="get" resultType="product" >
+		SELECT 
+			<include refid="productColumns"/>
+		FROM bb_product a
+		WHERE a.id = #{id}
+	</select>
+	
+	 <select id="findRepeatByAttribute" resultType="java.lang.Integer">
+        SELECT count(*) as c
+        FROM bb_ref_product_attrubite a
+            where attribute_id in 
+            <foreach collection="attributeIds" item="attrributeId" open="(" separator="," close=")">
+                    #{attrributeId}
+            </foreach>
+            <if test="notProductId != null and notProductId != ''">
+                AND a.product_id  != #{notProductId}
+            </if>
+            
+        group by product_id
+        HAVING c=#{attributeCount}
+       
+    </select>
+	<select id="getCount1" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM iim_mail_compose a
+       
+    
+    </select>
+	
+	<!-- 获得ProductAttribute -->
+	<select id="findProductAttribute" resultMap="productResult" >
+        SELECT 
+            <include refid="productAttributeColumns"/>
+        FROM bb_product a
+            <include refid="productAttributeJoins"/>
+        WHERE a.id = #{id}
+    </select>
+	
+	<!-- 获得产品及属性 -->
+	<select id="findProductAndAttributeList2" resultMap="productResult" >
+        SELECT 
+            <include refid="productAttributeColumns"/>
+        FROM bb_product a
+            <include refid="productAttributeJoins"/>
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            <if test="name != null and name != ''">
+                AND a.name LIKE concat('%',#{name},'%')
+            </if>
+            <if test="relationName != null and relationName != ''">
+                AND a.relation_name LIKE concat('%',#{relationName},'%')
+            </if>
+            <!-- 用于查找花色 -->
+            <if test="reserve01 != null and reserve01 != ''">
+                AND at.id = #{reserve01}
+            </if>
+        </where>
+        GROUP BY a.id
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                ORDER BY a.create_date DESC
+            </otherwise>
+        </choose>
+    </select>
+	
+	
+	
+	<select id="findList" resultType="Product" >
+		SELECT 
+			<include refid="productColumns"/>
+		FROM bb_product a
+		<include refid="productJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+			<if test="relationName != null and relationName != ''">
+				AND a.relation_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{relationName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{relationName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{relationName},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Product" >
+		SELECT 
+			<include refid="productColumns"/>
+		FROM bb_product a
+		<include refid="productJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO bb_product(
+			id,
+			name,
+			style,
+            reserve01,
+            reserve02, 
+			relation_name,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{name},
+			#{style},
+            #{reserve01},
+            #{reserve02}, 
+			#{relationName},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE bb_product SET 	
+			name = #{name},
+			relation_name = #{relationName},
+			style = #{style},
+            reserve01 = #{reserve01},
+            reserve02 = #{reserve02}, 
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM bb_product
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE bb_product SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Product" statementType="STATEMENT">
+		select * FROM bb_product  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>
