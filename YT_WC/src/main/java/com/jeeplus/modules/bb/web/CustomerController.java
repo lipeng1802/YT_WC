@@ -38,6 +38,7 @@ import com.jeeplus.modules.bb.entity.Wechat;
 import com.jeeplus.modules.bb.service.CustomerService;
 import com.jeeplus.modules.bb.service.WechatService;
 import com.jeeplus.modules.bb.tools.AttributeType;
+import com.jeeplus.modules.weixin.course.util.WeixinUtil;
 
 /**
  * 微信客户信息Controller
@@ -72,6 +73,8 @@ public class CustomerController extends BaseController {
 	public String list(Customer customer, HttpServletRequest request, HttpServletResponse response, Model model) {
 		Page<Customer> page = customerService.findPage(new Page<Customer>(request, response), customer); 
 		model.addAttribute("page", page);
+	      System.out.println(WeixinUtil.project_url);
+	        System.out.println(WeixinUtil.img_url);
 		return "modules/bb/customerList";
 	}
 

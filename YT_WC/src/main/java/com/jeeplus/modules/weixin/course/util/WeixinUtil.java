@@ -201,11 +201,9 @@ public class WeixinUtil {
 
 		objArticle = new Article();
 		objArticle.setTitle("公司简介");
-		objArticle.setDescription("公司总部位于北京亦庄经济技术开发区亦城国际B座18层。主要生产装饰纸、浸渍纸和装饰板。"
-				+ "企业自有品牌“三优”在行业内享有很高声誉。2013年投资8000余万在天津宁河成立了天津宏冠装饰材料有限公司。"
-				+ "引进领先的自动化生产线，采用天然气能源技术。 ");
-		objArticle.setPicUrl(WeixinUtil.img_url + "company.jpg");
-		objArticle.setUrl(WeixinUtil.project_url + "aboutus.jsp");
+		objArticle.setDescription("感谢关注Veron欧派贝隆，『欧派贝隆』板材扎根于华北地区，是天津是欧派商贸有限公司2015年重点打造的项目，品牌自创建之初旨在代表对高品质矢志不渝的崇尚，代表对环保健康永不妥协的信仰，代表对伙伴关系亲密无间的珍视，代表对环保乃至于可持续发展孜孜不倦的追求。公司以天津生产工厂为主要生产基地，面向全国家具行业客户、木质板材经销商、和其他工程类商业组织提供产品和服务。今天，欧派贝隆的产品被广泛的应用于厨房、卫生间、起居室、卧室、办公室、书房、以及其他各种家用及商用领域之中。");
+		objArticle.setPicUrl(WeixinUtil.img_url);
+		objArticle.setUrl(WeixinUtil.project_url);
 		lstArticle.add(objArticle);
 
 		return lstArticle;
