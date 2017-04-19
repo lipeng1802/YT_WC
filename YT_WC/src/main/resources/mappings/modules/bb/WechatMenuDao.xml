@@ -52,6 +52,9 @@
 					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
 					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
 			</if>
+			<if test="key != null and key != ''">
+                AND a.button_key = #{key}
+            </if>
 		</where>
 		ORDER BY a.sort ASC
 	</select>

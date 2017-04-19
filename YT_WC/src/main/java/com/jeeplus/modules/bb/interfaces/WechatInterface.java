@@ -3,6 +3,8 @@
  */
 package com.jeeplus.modules.bb.interfaces;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.google.common.collect.Lists;
 import com.jeeplus.common.utils.DateUtils;
 import com.jeeplus.common.utils.MyBeanUtils;
@@ -37,6 +40,7 @@ import com.jeeplus.common.utils.excel.ExportExcel;
 import com.jeeplus.common.utils.excel.ImportExcel;
 import com.jeeplus.modules.bb.entity.Wechat;
 import com.jeeplus.modules.bb.service.WechatService;
+import com.jeeplus.modules.weixin.course.service.CoreService;
 
 /**
  * 微信信息Controller
@@ -73,14 +77,30 @@ public class WechatInterface extends BaseController {
      * @Date 2016年10月11日 下午3:53:40
      */
     @ResponseBody()
-    @RequestMapping(value="/accessWechat",method=RequestMethod.GET)
+    @RequestMapping(value="/accessWechat",method = {RequestMethod.GET, RequestMethod.POST})
     public void accessWechat(HttpServletRequest request,HttpServletResponse response)throws Exception{
         String token = "veron";
         //设置编码
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=utf-8");
-        //微信加密签名
+        
+        boolean isGet = request.getMethod().toLowerCase().equals("get");
+        if (isGet) {
+            weChatServerGet(request,response);
+        }else {
+            weChatServerPost(request,response);
+        }
+    }
+    
+    /**
+     * 微信服务器Get请求
+     * @param request
+     * @param response
+     */
+    private void weChatServerGet(HttpServletRequest request,HttpServletResponse response){
+        String token = "veron";
+      //微信加密签名
         String signature = request.getParameter("signature");
         //时间戳
         String timestamp = request.getParameter("timestamp");
@@ -100,12 +120,42 @@ public class WechatInterface extends BaseController {
         //比对
         if(DigestUtils.sha1Hex(wxstr).equals(signature.trim())){
             //如果比对成功往微信写echostr
-            response.getWriter().write(echostr);
+            try {
+                response.getWriter().write(echostr);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                log.error("<!----------微信接入失败----------!>");
+            }
             log.info("<!----------微信接入服务器成功"+echostr+"----------!>");
         }else{
             log.info("<!----------微信接入服务器失败"+echostr+"----------!>");
         }
     }
+    
+    /**
+     * 微信服务器Post请求
+     * @param request
+     * @param response
+     */
+    private void weChatServerPost(HttpServletRequest request,HttpServletResponse response){
+        // 调用核心业务类接收消息、处理消息  
+        CoreService service=new CoreService();
+        String respMessage = service.processRequest(request);  
+          
+        // 响应消息  
+        PrintWriter out;
+        try {
+            out = response.getWriter();
+            out.print(respMessage);  
+            out.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            log.error("<!----------消息发送失败----------!>");
+        }  
+        
+    }
+    
+    
     /**
      * 
      * @ClassName SpellComparator 

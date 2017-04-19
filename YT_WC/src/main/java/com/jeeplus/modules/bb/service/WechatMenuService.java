@@ -43,4 +43,22 @@ public class WechatMenuService extends TreeService<WechatMenuDao, WechatMenu> {
 		super.delete(wechatMenu);
 	}
 	
+	/**
+	 * 根据key获取对应的文字信息
+	 */
+	public String getMenuBykey(String key){
+	    WechatMenu menu=new WechatMenu();
+	    menu.setKey(key);
+	    List<WechatMenu> list = findList(menu);
+	    
+	    if(list != null && list.size()>0){
+	        menu= list.get(0);
+	    }
+	    
+	    if(StringUtils.isNotBlank(menu.getRemarks())){
+	        return menu.getRemarks();
+	    }else{
+	        return null;
+	    }
+	}
 }

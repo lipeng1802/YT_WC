@@ -6,7 +6,11 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.jeeplus.common.web.BaseController;
+import com.jeeplus.modules.bb.service.WechatMenuService;
+import com.jeeplus.modules.bb.service.WechatService;
 import com.jeeplus.modules.weixin.course.message.response.NewsMessage;
 import com.jeeplus.modules.weixin.course.message.response.TextMessage;
 import com.jeeplus.modules.weixin.course.util.MessageUtil;
@@ -18,20 +22,21 @@ import com.jeeplus.modules.weixin.course.util.WeixinUtil;
  * @author jdq
  * @date 2014-07-01
  */
-public class CoreService {
 
+public class CoreService {
+    @Autowired
+    private WechatMenuService menuService;
 	/**
 	 * 处理微信发来的请求
 	 * 
 	 * @param request
 	 * @return
 	 */
-	public static String processRequest(HttpServletRequest request) {
+	public  String processRequest(HttpServletRequest request) {
 		String respMessage = null;
 		try {
 			// 默认返回的文本消息内容
 			String respContent = "请求处理异常，请稍候尝试！";
-
 			// xml请求解析
 			Map<String, String> requestMap = MessageUtil.parseXml(request);
 
@@ -64,31 +69,8 @@ public class CoreService {
 				// 地理位置经度
 				String locationY = requestMap.get("Location_Y");
 				String label = requestMap.get("Label");
-				//respContent = "您发送的是地理位置消息！";
-//				locationX = "34.747190";
-//				locationY = "113.625350";
-				/*if (null == locationX
-						|| locationX.length() <= 0
-						|| null == locationY
-						|| locationY.length() <= 0) {
-					respContent = "获取地理位置有误！";
-				} else {
-					objSalesModel = WeixinUtil.doMinLocation(Double.parseDouble(locationX), Double.parseDouble(locationY));
-					if (null == objSalesModel) {
-						respContent = "您发送的是地理位置消息！";
-					} else {
-						if (null == label || label.length() <= 0) {
-							respContent = "您的位置" ;
-						} else {
-							respContent = "您的位置是" + label;
-						}
-						respContent += "，经度:" + locationY
-								+ "，纬度" + locationX + "，距离您最近的销售是 :" + ""
-								+ objSalesModel.getBbsaName() + "\n" + "手机号："
-								+ objSalesModel.getBbsaMobile() + "\nQQ号："
-								+ objSalesModel.getBbsaQq();
-					}}*/
-				}
+				respContent = "您发送的是地理位置消息！";
+			}
 			// 链接消息
 			else if (msgType.equals(MessageUtil.REQ_MESSAGE_TYPE_LINK)) {
 				respContent = "您发送的是链接消息！";
@@ -105,12 +87,9 @@ public class CoreService {
 				String eventKey = requestMap.get("EventKey");
 				// 订阅
 				if (eventType.equals(MessageUtil.EVENT_TYPE_SUBSCRIBE)) {
-					/*
-					respContent = "公司总部位于北京亦庄经济技术开发区亦城国际B座18层。主要生产装饰纸、浸渍纸和装饰板。"
-							+ "企业自有品牌“三优”在行业内享有很高声誉。2013年投资8000余万在天津宁河成立了天津宏冠装饰材料有限公司。"
-							+ "引进领先的自动化生产线，采用天然气能源技术。 <a href=\""
-							+ WeixinUtil.project_url + "/aboutus.jsp\">公司详情</a>";
-					 */
+					
+					respContent = "感谢关注Veron欧派贝隆，『欧派贝隆』板材扎根于华北地区，是天津是欧派商贸有限公司2015年重点打造的项目，品牌自创建之初旨在代表对高品质矢志不渝的崇尚，代表对环保健康永不妥协的信仰，代表对伙伴关系亲密无间的珍视，代表对环保乃至于可持续发展孜孜不倦的追求。公司以天津生产工厂为主要生产基地，面向全国家具行业客户、木质板材经销商、和其他工程类商业组织提供产品和服务。今天，欧派贝隆的产品被广泛的应用于厨房、卫生间、起居室、卧室、办公室、书房、以及其他各种家用及商用领域之中。";
+					
 					NewsMessage newsMessage = new NewsMessage();
 					// 复制基本属性
 					PropertyUtils.copyProperties(newsMessage, textMessage);
@@ -124,8 +103,14 @@ public class CoreService {
 				}
 				// 自定义菜单点击事件
 				else if (eventType.equals(MessageUtil.EVENT_TYPE_CLICK)) {
-					switch (Integer.parseInt(eventKey)) {
-					case 33:
+				    String remarks = menuService.getMenuBykey(eventKey);
+				    if(remarks != null){
+				        respContent = remarks;
+				    }else{
+				        respContent = "开发中，敬请期待!";
+				    }
+					/*switch (Integer.parseInt(eventKey)) {
+					case 32:
 						NewsMessage newsMessage = new NewsMessage();
 						// 复制基本属性
 						PropertyUtils.copyProperties(newsMessage, textMessage);
@@ -135,7 +120,7 @@ public class CoreService {
 					default:
 						respContent = "开发中，敬请期待!";
 						break;
-					}
+					}*/
 				}
 				// 链接菜单点击事件
 				else if (eventType.equals(MessageUtil.EVENT_TYPE_VIEW)) {
@@ -151,9 +136,6 @@ public class CoreService {
 					// 地理位置精度
 					String precision = requestMap.get("Precision");
 
-//					System.out.println("用户名：" + toUserName + "，openID："
-//							+ fromUserName + "，经度:" + longitude + "，纬度"
-//							+ latitude + "，精度" + precision);
 					return "";
 				}
 			}
